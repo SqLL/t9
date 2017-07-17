@@ -109,26 +109,47 @@ class Torrent9Helper {
     }
 
     private function getPageLink($title){
-        $title = strtolower(preg_replace('/[\t\s]+/', '-', $title));
+        // remove parenthesis
+        $title = preg_replace('/[\(\)]/', '', $title);
+
+        $title = strtolower(preg_replace('/[\t\s\.]+/', '-', $title));
+
         $result = $this->base_link.$title;
         return $result;
     }
 
     //2010-12-30 13:20:10
     private function dateTime($string) {
+        // seconds
+        if(strpos($string, 'seconde') !== false){
+            $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
+            return date('Y-m-d H:i:s', time() - $int);
+        }
+
+        // minute
+        if(strpos($string, "minute") !== false){
+            $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
+            return date('Y-m-d H:i:s', strtotime("-".$int." minute"));
+        }
+
+        // hour
+        if(strpos($string, "heure") !== false){
+            $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
+            return date('Y-m-d H:i:s', strtotime("-".$int." hour"));
+        }
 
         // semaine
-        if(strpos("semaine",$string) !== false){
+        if(strpos($string, "semaine") !== false){
             $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
             return date('Y-m-d H:i:s', strtotime("-".$int." week"));
         }
         // mois
-        if(!strpos("mois",$string) !== false){
+        if(strpos($string, "mois") !== false){
             $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
             return date('Y-m-d H:i:s', strtotime("-".$int." month"));
         }
         // year
-        if(strpos("ann",$string) !== false){
+        if(strpos($string, "ans") !== false){
             $int = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
             return date('Y-m-d H:i:s', strtotime("-".$int." year"));
         }
@@ -154,6 +175,7 @@ class Torrent9Helper {
 
 
     private function getInfoFromPageLink($link) {
+
         // Curl call
         $curl = curl_init();
 
@@ -162,17 +184,19 @@ class Torrent9Helper {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($curl);
 
+;
         $doc = new DOMDocument();
         @$doc->loadHTML($result);
         $xpath = new DOMXPath($doc);
 
-        $result = array(
+
+        $resultA = array(
             'date' => $xpath->query("//body//div[contains(@class, 'left-tab-section')]//div[contains(@class, 'movie-information')]//ul[3]//li[3]")->item(0)->nodeValue,
             'category' => utf8_decode($xpath->query('//body//div[contains(@class, "left-tab-section")]//div[contains(@class, "movie-information")]//ul[4]//li[3]')->item(0)->nodeValue),
             'downloadlink' => $xpath->query('//body//div[contains(@class, "left-tab-section")]//div[1][contains(@class, "download-btn")]//a[contains(@class, "download")]/@href')->item(0)->nodeValue
         );
 
-        return $result;
+        return $resultA;
     }
 }
 ?>

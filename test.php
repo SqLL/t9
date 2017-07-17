@@ -9,13 +9,13 @@ require_once('search.php');
 libxml_use_internal_errors(true);
 $search9 = new SynoDLMSearchTorrent9();
 $curl = curl_init();
-$search9->prepare($curl,"Le bureau des legendes");
+$search9->prepare($curl,"ubuntu");
 $response = curl_exec($curl);
 curl_close($curl);
 $plugin = new plugin;
 
 $count = $search9->parse($plugin,$response);
-echo $plugin->count() . "\n";
+echo "Number of result : ".$plugin->count() . "\n";
 
 var_dump($plugin);
 
